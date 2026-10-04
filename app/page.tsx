@@ -2,32 +2,51 @@
 
 import { useState } from "react";
 
+type FlightData = {
+  origin?: { icao_code?: string };
+  destination?: { icao_code?: string };
+  aircraft?: { icao_code?: string };
+  general?: {
+    flight_number?: string;
+    route?: string;
+    initial_altitude?: string;
+  };
+  times?: { est_time_enroute?: string };
+  fuel?: { plan_ramp?: string };
+};
+
+type ApiError = { error?: string };
+
+async function fetchFlightPlan(pilotId: string): Promise<FlightData> {
+  const response = await fetch(`/api/simbrief?userid=${encodeURIComponent(pilotId)}`);
+  const data = (await response.json()) as FlightData & ApiError;
+
+  if (!response.ok) {
+    throw new Error(data.error || "Failed to fetch flight plan");
+  }
+
+  return data;
+}
+
 export default function Home() {
   const [pilotId, setPilotId] = useState("");
-  const [flightData, setFlightData] = useState<any>(null);
+  const [flightData, setFlightData] = useState<FlightData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Call internal SimBrief proxy API
   const handleFetchFlight = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pilotId) return;
+    const normalizedPilotId = pilotId.trim();
+    if (!normalizedPilotId) return;
 
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch(`/api/simbrief?userid=${pilotId}`);
-      const data = await res.json();
-      console.log("SimBrief Data:", data);
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch flight plan");
-      }
-
+      const data = await fetchFlightPlan(normalizedPilotId);
       setFlightData(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to fetch flight plan");
     } finally {
       setLoading(false);
     }
@@ -104,10 +123,27 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Aircraft</span>
-              <span className="text-white font-bold">{flightData.aircraft?.icao_code || "N/A"}</span>              </div>
+                <span className="text-white font-bold">{flightData.aircraft?.icao_code || "N/A"}</span>
+              </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Flight Number</span>
                 <span className="text-white font-bold">{flightData.general?.flight_number || "N/A"}</span>
+              </div>
+            </div>
+
+            {/* Operational Details */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
+                <span className="text-zinc-500 block">Cruise Altitude</span>
+                <span className="text-white font-bold">{flightData.general?.initial_altitude || "N/A"}</span>
+              </div>
+              <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
+                <span className="text-zinc-500 block">Flight Time</span>
+                <span className="text-white font-bold">{flightData.times?.est_time_enroute || "N/A"}</span>
+              </div>
+              <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
+                <span className="text-zinc-500 block">Ramp Fuel</span>
+                <span className="text-white font-bold">{flightData.fuel?.plan_ramp || "N/A"}</span>
               </div>
             </div>
 
