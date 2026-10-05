@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 type FlightData = {
+  params?: { units?: string };
   origin?: { icao_code?: string };
   destination?: { icao_code?: string };
   aircraft?: { icao_code?: string };
@@ -16,6 +17,34 @@ type FlightData = {
 };
 
 type ApiError = { error?: string };
+
+function detectFuelUnit(units?: string): "kg" | "lb" | null {
+  const normalizedUnits = units?.toLowerCase();
+
+  if (normalizedUnits === "kg" || normalizedUnits === "kgs") {
+    return "kg";  
+  }
+
+  if (normalizedUnits === "lb" || normalizedUnits === "lbs") {
+    return "lb";
+  }
+
+  return null;
+}
+
+function formatAltitude(altitude?: string): string {
+  return altitude ? `${altitude} ft` : "N/A";
+}
+
+function formatFuel(fuel: string | undefined, unit: "kg" | "lb" | null): string {
+  const amount = Number.parseFloat(fuel ?? "");
+
+  if (!Number.isFinite(amount)) {
+    return "N/A";
+  }
+
+  return `${Math.round(amount).toLocaleString("en-US")} ${unit ?? "unit unknown"}`;
+}
 
 async function fetchFlightPlan(pilotId: string): Promise<FlightData> {
   const response = await fetch(`/api/simbrief?userid=${encodeURIComponent(pilotId)}`);
@@ -135,7 +164,7 @@ export default function Home() {
             <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Cruise Altitude</span>
-                <span className="text-white font-bold">{flightData.general?.initial_altitude || "N/A"}</span>
+                <span className="text-white font-bold">{formatAltitude(flightData.general?.initial_altitude)}</span>
               </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Flight Time</span>
@@ -143,7 +172,9 @@ export default function Home() {
               </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Ramp Fuel</span>
-                <span className="text-white font-bold">{flightData.fuel?.plan_ramp || "N/A"}</span>
+                <span className="text-white font-bold">
+                  {formatFuel(flightData.fuel?.plan_ramp, detectFuelUnit(flightData.params?.units))}
+                </span>
               </div>
             </div>
 

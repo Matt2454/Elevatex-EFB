@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+### ELEVATEX /// Electronic Flight bag (EFB) Project
 
-## Getting Started
+A modern, lightweight EFB web application built with Next.js, TypeScript and Tailwind CSS. It retreives, parses and visualizes the OFB data directly from SimBrief (with SimBrief API)
 
-First, run the development server:
+### Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **SimBrief integration** Fetches active flight plans using either a SimBrief Pilot ID or Username
+2. **API Proxy**: uses a custom Next.js Route Handler ('/api/simbrief') to securely proxy requests, bypass CORS restrictions and handle API errors cleanly.
+3. **Flight Briefing Overview**: Displays departure/arrival ICAO code, aircraft type, flight number, route, cruise altitude, enroute time and ramp fuel.
+4. **Loading &. error handling**: Clear visual indicators for API loading states and fallback error messaging for missing or invalid flight plans.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Framework**: Next.js (App Router)
+**Language**: TypeScript
+**styling**: Tailwind CSS
+**Data Source**: SimBrief API ('xml.fetcher.php' with JSON response mapping)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## architecture & engineering decisions
 
-## Learn More
+**Server-side Proy**: instead of fetching directly from the client, requests are handled server-side. This keeps the network layer clean, handles edge-case XML error responses from SimBrief, and prevents CORS issues.
+**Type Safety**: Custom TypeScript definition and interfaces ensure end-to-end data safety when mapping complex  OFP JSON responses.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+clone the repository: ```bash
+   git clone [https://github.com/Matt2454/Elevatex-EFB.git](https://github.com/Matt2454/Elevatex-EFB.git)
+   cd Elevatex-EFB
