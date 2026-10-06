@@ -1,11 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+const RouteMap = dynamic(() => import("./components/RouteMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 bg-zinc-950 border border-zinc-800 rounded flex items-center justify-center text-xs text-zinc-500">
+      LOADING NAV MAP...
+    </div>
+  ),
+});
 
 type FlightData = {
   params?: { units?: string };
-  origin?: { icao_code?: string };
-  destination?: { icao_code?: string };
+  origin?: { icao_code?: string; pos_lat?: string; pos_long?: string };
+  destination?: { icao_code?: string; pos_lat?: string; pos_long?: string };
   aircraft?: { icao_code?: string };
   general?: {
     flight_number?: string;
@@ -185,6 +195,19 @@ export default function Home() {
                 {flightData.general?.route || "No route specified"}
               </p>
             </div>
+
+            {/* Route Map */}
+            {flightData.origin?.pos_lat && flightData.destination?.pos_lat && (
+              <div className="space-y-1 pt-2">
+                <span className="text-zinc-500 text-xs block">Route Map</span>
+                <RouteMap
+                  originLat={Number.parseFloat(flightData.origin.pos_lat)}
+                  originLng={Number.parseFloat(flightData.origin.pos_long || "0")}
+                  destLat={Number.parseFloat(flightData.destination.pos_lat)}
+                  destLng={Number.parseFloat(flightData.destination.pos_long || "0")}
+                />
+              </div>
+            )}
           </div>
         )}
 
