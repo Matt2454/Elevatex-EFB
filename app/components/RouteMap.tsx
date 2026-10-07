@@ -14,7 +14,7 @@ interface RouteMapProps {
 function MapBounds({ bounds }: { bounds: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
-    if (bounds && bounds.length === 2) {
+    if (bounds.length === 2) {
       map.fitBounds(bounds, { padding: [30, 30] });
     }
   }, [map, bounds]);

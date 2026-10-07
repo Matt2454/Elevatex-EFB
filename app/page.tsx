@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { MetarWidget } from "@/components/MetarWidget";
 
+// Leaflet needs the browser's window object, so the map must stay client-only in Next.js.
 const RouteMap = dynamic(() => import("./components/RouteMap"), {
   ssr: false,
   loading: () => (
@@ -16,6 +18,7 @@ type FlightData = {
   params?: { units?: string };
   origin?: { icao_code?: string; pos_lat?: string; pos_long?: string };
   destination?: { icao_code?: string; pos_lat?: string; pos_long?: string };
+  alternate?: { icao_code?: string };
   aircraft?: { icao_code?: string };
   general?: {
     flight_number?: string;
@@ -158,8 +161,15 @@ export default function Home() {
               </div>
             </div>
 
+            {/* METAR & Weather Conditions Widget */}
+            <MetarWidget
+              depIcao={flightData.origin?.icao_code}
+              arrIcao={flightData.destination?.icao_code}
+              altIcao={flightData.alternate?.icao_code}
+            />
+
             {/* Aircraft & Flight Details */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Aircraft</span>
                 <span className="text-white font-bold">{flightData.aircraft?.icao_code || "N/A"}</span>
@@ -171,7 +181,7 @@ export default function Home() {
             </div>
 
             {/* Operational Details */}
-            <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Cruise Altitude</span>
                 <span className="text-white font-bold">{formatAltitude(flightData.general?.initial_altitude)}</span>

@@ -22,11 +22,11 @@ export async function GET(request: Request) {
     const response = await fetch(simbriefUrl);
     const textData = await response.text();
 
-    // Safely attempt to parse the response as JSON
+    // SimBrief may return XML for invalid IDs, so parse JSON without assuming the response format.
     try {
       const data = JSON.parse(textData);
 
-      // Handle errors returned inside SimBrief's JSON response
+      // SimBrief can encode request failures in a successful HTTP response.
       if (data.status && typeof data.status === "string" && data.status.toLowerCase().includes("error")) {
         return NextResponse.json({ error: data.status }, { status: 400 });
       }
