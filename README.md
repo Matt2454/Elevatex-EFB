@@ -20,8 +20,10 @@ First, clone the repository and install the dependencies:
 
 ```bash
 npm install
+```
 
 Open http://localhost:3000 with your browser to see the application.
 
-Usage
+## Usage
+
 Enter a valid SimBrief Pilot ID or Username in the search field and click "Load Flight Plan" to retrieve and display the briefing data.

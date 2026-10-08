@@ -19,20 +19,36 @@ export function MetarWidget({ depIcao, arrIcao, altIcao }: MetarWidgetProps) {
     const icaos = [depIcao, arrIcao, altIcao].filter(Boolean) as string[];
     if (icaos.length === 0) return;
 
+    const controller = new AbortController();
+    let active = true;
+
     startTransition(() => {
       setLoading(true);
       setError(null);
+      setMetars({});
     });
 
-    fetchMetar(icaos)
+    fetchMetar(icaos, controller.signal)
       .then((data) => {
+        if (!active) return;
         if (Object.keys(data).length === 0) {
           setError("Timeout or no weather data received");
         }
         setMetars(data);
       })
-      .catch(() => setError("Network error fetching METAR"))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (active && !controller.signal.aborted) {
+          setError("Network error fetching METAR");
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [depIcao, arrIcao, altIcao]);
 
   const airports = [

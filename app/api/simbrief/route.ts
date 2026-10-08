@@ -11,24 +11,44 @@ export async function GET(request: Request) {
     );
   }
 
-  const isNumeric = /^\d+$/.test(input.trim());
+  const normalizedInput = input.trim();
+  if (!normalizedInput || normalizedInput.length > 100 || /[\u0000-\u001F\u007F]/.test(normalizedInput)) {
+    return NextResponse.json({ error: "Invalid Pilot ID or Username" }, { status: 400 });
+  }
+
+  const isNumeric = /^\d+$/.test(normalizedInput);
   const paramKey = isNumeric ? "userid" : "username";
 
   const simbriefUrl = `https://www.simbrief.com/api/xml.fetcher.php?${paramKey}=${encodeURIComponent(
-    input.trim()
+    normalizedInput
   )}&json=1`;
 
   try {
-    const response = await fetch(simbriefUrl);
+    const response = await fetch(simbriefUrl, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: "SimBrief returned an unavailable response" },
+        { status: 502 }
+      );
+    }
+
     const textData = await response.text();
 
     // SimBrief may return XML for invalid IDs, so parse JSON without assuming the response format.
     try {
-      const data = JSON.parse(textData);
+      const data: unknown = JSON.parse(textData);
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Unexpected SimBrief response");
+      }
 
       // SimBrief can encode request failures in a successful HTTP response.
-      if (data.status && typeof data.status === "string" && data.status.toLowerCase().includes("error")) {
-        return NextResponse.json({ error: data.status }, { status: 400 });
+      const status = "status" in data && typeof data.status === "string" ? data.status : null;
+      if (status?.toLowerCase().includes("error")) {
+        return NextResponse.json({ error: status }, { status: 400 });
       }
 
       return NextResponse.json(data);

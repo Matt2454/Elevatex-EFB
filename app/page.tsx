@@ -66,8 +66,8 @@ function formatFuel(fuel: string | undefined, unit: "kg" | "lb" | null): string 
 function formatFlightTime(secondsStr?: string): string {
   if (!secondsStr) return "N/A";
   
-  const totalSeconds = parseInt(secondsStr, 10);
-  if (isNaN(totalSeconds)) return "N/A";
+  const totalSeconds = Number(secondsStr);
+  if (!Number.isInteger(totalSeconds) || totalSeconds < 0) return "N/A";
 
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -76,6 +76,28 @@ function formatFlightTime(secondsStr?: string): string {
   const paddedMinutes = minutes.toString().padStart(2, "0");
 
   return `${hours}h ${paddedMinutes}m`;
+}
+
+function parseCoordinate(value: string | undefined, min: number, max: number): number | null {
+  const coordinate = Number(value);
+  return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max
+    ? coordinate
+    : null;
+}
+
+function getRouteCoordinates(flightData: FlightData | null) {
+  if (!flightData) return null;
+
+  const originLat = parseCoordinate(flightData.origin?.pos_lat, -90, 90);
+  const originLng = parseCoordinate(flightData.origin?.pos_long, -180, 180);
+  const destLat = parseCoordinate(flightData.destination?.pos_lat, -90, 90);
+  const destLng = parseCoordinate(flightData.destination?.pos_long, -180, 180);
+
+  if (originLat === null || originLng === null || destLat === null || destLng === null) {
+    return null;
+  }
+
+  return { originLat, originLng, destLat, destLng };
 }
 
 async function fetchFlightPlan(pilotId: string): Promise<FlightData> {
@@ -94,6 +116,7 @@ export default function Home() {
   const [flightData, setFlightData] = useState<FlightData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const routeCoordinates = getRouteCoordinates(flightData);
 
   const handleFetchFlight = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,14 +249,14 @@ export default function Home() {
             </div>
 
             {/* Route Map */}
-            {flightData.origin?.pos_lat && flightData.destination?.pos_lat && (
+            {routeCoordinates && (
               <div className="space-y-1 pt-2">
                 <span className="text-zinc-500 text-xs block">Route Map</span>
                 <RouteMap
-                  originLat={Number.parseFloat(flightData.origin.pos_lat)}
-                  originLng={Number.parseFloat(flightData.origin.pos_long || "0")}
-                  destLat={Number.parseFloat(flightData.destination.pos_lat)}
-                  destLng={Number.parseFloat(flightData.destination.pos_long || "0")}
+                  originLat={routeCoordinates.originLat}
+                  originLng={routeCoordinates.originLng}
+                  destLat={routeCoordinates.destLat}
+                  destLng={routeCoordinates.destLng}
                 />
               </div>
             )}
