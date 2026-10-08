@@ -21,9 +21,13 @@ type FlightData = {
   alternate?: { icao_code?: string };
   aircraft?: { icao_code?: string };
   general?: {
+    icao_airline?: string;
     flight_number?: string;
     route?: string;
     initial_altitude?: string;
+  };
+  atc?: { 
+    callsign?: string;
   };
   times?: { est_time_enroute?: string };
   fuel?: { plan_ramp?: string };
@@ -57,6 +61,21 @@ function formatFuel(fuel: string | undefined, unit: "kg" | "lb" | null): string 
   }
 
   return `${Math.round(amount).toLocaleString("en-US")} ${unit ?? "unit unknown"}`;
+}
+
+function formatFlightTime(secondsStr?: string): string {
+  if (!secondsStr) return "N/A";
+  
+  const totalSeconds = parseInt(secondsStr, 10);
+  if (isNaN(totalSeconds)) return "N/A";
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  // Aggiunge lo zero davanti ai minuti se sono meno di 10
+  const paddedMinutes = minutes.toString().padStart(2, "0");
+
+  return `${hours}h ${paddedMinutes}m`;
 }
 
 async function fetchFlightPlan(pilotId: string): Promise<FlightData> {
@@ -99,14 +118,9 @@ export default function Home() {
       <div className="w-full max-w-xl border border-zinc-800 bg-zinc-900 p-6 rounded-sm shadow-2xl mt-10">
         
         {/* EFB Header */}
-        <div className="border-b border-zinc-800 pb-4 mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-white font-bold tracking-wider text-lg">ELEVATEX // EFB</h1>
-            <p className="text-xs text-zinc-500">FLIGHT DATA INITIALIZATION</p>
-          </div>
-          <div className="text-xs px-2 py-1 bg-zinc-800 text-zinc-400 rounded">
-            SYS ONLINE
-          </div>
+        <div className="border-b border-zinc-800 pb-4 mb-6">
+          <h1 className="text-white font-bold tracking-wider text-lg">ELEVATEX // EFB</h1>
+          <p className="text-xs text-zinc-500">PILOT BRIEFING</p>
         </div>
 
         {/* Pilot ID Search Form */}
@@ -175,8 +189,11 @@ export default function Home() {
                 <span className="text-white font-bold">{flightData.aircraft?.icao_code || "N/A"}</span>
               </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
-                <span className="text-zinc-500 block">Flight Number</span>
-                <span className="text-white font-bold">{flightData.general?.flight_number || "N/A"}</span>
+                <span className="text-zinc-500 block">Callsign</span>
+                <span className="text-white font-bold">
+                  {flightData.atc?.callsign || 
+                   `${flightData.general?.icao_airline || ''}${flightData.general?.flight_number || 'N/A'}`}
+                </span>
               </div>
             </div>
 
@@ -188,7 +205,9 @@ export default function Home() {
               </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Flight Time</span>
-                <span className="text-white font-bold">{flightData.times?.est_time_enroute || "N/A"}</span>
+                <span className="text-white font-bold">
+                  {formatFlightTime(flightData.times?.est_time_enroute)}
+                </span>
               </div>
               <div className="bg-zinc-950 p-3 rounded border border-zinc-800">
                 <span className="text-zinc-500 block">Ramp Fuel</span>
