@@ -1,26 +1,27 @@
-### ELEVATEX /// Electronic Flight bag (EFB) Project
+# ELEVATEX EFB
 
-A modern, lightweight EFB web application built with Next.js, TypeScript and Tailwind CSS. It retreives, parses and visualizes the OFB data directly from SimBrief (with SimBrief API)
+A web-based Electronic Flight Bag (EFB) built for the ELEVATEX technical assignment. It integrates with the SimBrief API to fetch Operational Flight Plan (OFP) data and displays real-time weather information.
 
-### Features
+## Features
 
-1. **SimBrief integration** Fetches active flight plans using either a SimBrief Pilot ID or Username
-2. **API Proxy**: uses a custom Next.js Route Handler ('/api/simbrief') to securely proxy requests, bypass CORS restrictions and handle API errors cleanly.
-3. **Flight Briefing Overview**: Displays departure/arrival ICAO code, aircraft type, flight number, route, cruise altitude, enroute time and ramp fuel.
-4. **Loading &. error handling**: Clear visual indicators for API loading states and fallback error messaging for missing or invalid flight plans.
+* **SimBrief Integration:** Fetches and displays flight data including origin, destination, ATC callsign, cruise altitude, flight time, and ramp fuel.
+* **Real-time Weather:** Displays METAR data for departure, arrival, and alternate airports. Uses a custom Next.js API route (`/api/metar`) to proxy the NOAA API and avoid client-side CORS issues.
+* **Route Map:** Visualizes the departure and arrival airports using Leaflet.
 
-## Tech stack
+## Tech Stack
 
-**Framework**: Next.js (App Router)
-**Language**: TypeScript
-**styling**: Tailwind CSS
-**Data Source**: SimBrief API ('xml.fetcher.php' with JSON response mapping)
+* Next.js (App Router)
+* Tailwind CSS
+* Leaflet
 
-## architecture & engineering decisions
+## Getting Started
 
-**Server-side Proy**: instead of fetching directly from the client, requests are handled server-side. This keeps the network layer clean, handles edge-case XML error responses from SimBrief, and prevents CORS issues.
-**Type Safety**: Custom TypeScript definition and interfaces ensure end-to-end data safety when mapping complex  OFP JSON responses.
+First, clone the repository and install the dependencies:
 
-clone the repository: ```bash
-   git clone [https://github.com/Matt2454/Elevatex-EFB.git](https://github.com/Matt2454/Elevatex-EFB.git)
-   cd Elevatex-EFB
+```bash
+npm install
+
+Open http://localhost:3000 with your browser to see the application.
+
+Usage
+Enter a valid SimBrief Pilot ID or Username in the search field and click "Load Flight Plan" to retrieve and display the briefing data.
